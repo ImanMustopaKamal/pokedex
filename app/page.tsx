@@ -27,19 +27,20 @@ import { AspectRatio } from "@/components/ui/aspect-ratio";
 import Image from "next/image";
 import { useSelector, useDispatch } from "@/redux/store";
 import { getResources } from "@/redux/slices/pokemon";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Home() {
-  // Initialize useDispatch to dispatch Redux actions
+  const [init, setInit] = useState<boolean>(false)
   const dispatch = useDispatch();
+  const { pokemons } = useSelector((state) => state.pokemons);
 
-  // Select the 'cardDetails' data from the Redux store using useSelector
-  const { pokemons, pokemonDetail } = useSelector((state) => state.pokemons);
-
-  // useEffect hook to dispatch 'getResources' action when the component mounts
   useEffect(() => {
-    dispatch(getResources());
+    setInit(true)
   }, []);
+
+  useEffect(() => {
+    if (init) dispatch(getResources());
+  }, [init]);
 
   return (
     <main>
@@ -132,33 +133,36 @@ export default function Home() {
       </section>
       <section className="p-4 pt-[25px] mx-auto my-0 w-full sm:w-[550px] md:w-[680px] lg:w-[850px] shadow-md">
         <div className="grid gap-6 md:gap-5 lg:gap-4 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-4">
-          {pokemons.results.map((res, index) => {
-            if (pokemonDetail.length == 0) {
-              return false
-            }
-            return (
-              <Card key={index}>
+          {pokemons.map((res, index) => (
+            <Card key={index}>
               <CardContent className={cn("p-0 mb-3")}>
                 <AspectRatio ratio={4 / 4} className="bg-muted">
                   <Image
-                    src={pokemonDetail[index]?.sprites?.other?.dream_world?.front_default || "https://images.unsplash.com/photo-1588345921523-c2dcdb7f1dcd"}
+                    src={
+                      res.pokemon_v2_pokemonsprites[0]?.sprites?.other?.dream_world
+                        ?.front_default ||
+                      "https://images.unsplash.com/photo-1588345921523-c2dcdb7f1dcd"
+                    }
                     priority
-                    sizes="contain"
+                    sizes="cover"
                     alt="Photo by Drew Beamer"
                     fill
-                    className="rounded-md object-contain"
+                    className="rounded-t-md"
                   />
                 </AspectRatio>
               </CardContent>
-              <CardFooter>
+              <CardFooter className={cn("flex-col gap-4")}>
                 <h3 className="text-[#313131] font-[700] capitalize">
                   {res.name}
                 </h3>
+                <div className="flex items-center justify-center gap-2">
+                  {res.pokemon_v2_pokemontypes.map((r, i) => (
+                    <p className="text-white bg-slate-800 p-1 rounded-md font-[600]" key={i}>{r.pokemon_v2_type.name}</p>
+                  ))}
+                </div>
               </CardFooter>
             </Card>
-            )
-          }
-          )}
+          ))}
         </div>
       </section>
     </main>
